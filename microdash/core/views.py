@@ -15,7 +15,7 @@ def get_image():
     return im
 
 
-def home(request):
+def station(request, shortcode=None):
     img = get_image()
     response = HttpResponse(mimetype='image/png')
     img.save(response, 'PNG')

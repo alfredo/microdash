@@ -3,8 +3,14 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 admin.autodiscover()
 
+
 urlpatterns = patterns(
     '',
-    url(r'^$', 'microdash.core.views.home', name='home'),
     url(r'^admin/', include(admin.site.urls)),
+)
+
+urlpatterns += patterns(
+    'microdash.core.views',
+    url(r'^$', 'station', name='home'),
+    url(r'^(?P<slug>[-\w]+)/$', 'station', name='station'),
 )
