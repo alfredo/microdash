@@ -25,6 +25,8 @@ def get_timetable(shortcode):
     url = ('http://www.abelliogreateranglia.co.uk/travel-information'
            '/journey-planning/live-departures/station/%s' % shortcode)
     response = requests.get(url, headers=HEADERS)
+    if not response.status_code == 200:
+        response = requests.get(url, headers=HEADERS)
     soup = BeautifulSoup(response.content)
     columns = ['destination', 'time', 'status', 'origin', 'operator']
     timetable = []
