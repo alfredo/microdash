@@ -32,8 +32,8 @@ def draw_station(draw, station):
 
 def draw_timetable(draw, timetable_list, limit=7):
     """Draw the timetable."""
-    font = ImageFont.truetype(CONTENT_FONT, 22)
-    offset = 75
+    font = ImageFont.truetype(CONTENT_FONT, 24)
+    offset = 70
     # Fields and position:
     attrs = [
         ('destination', 0),
@@ -41,7 +41,7 @@ def draw_timetable(draw, timetable_list, limit=7):
         ('status', 390),
     ]
     for i, item in enumerate(timetable_list[:limit]):
-        position_y = offset + (35 * i)
+        position_y = offset + (38 * i)
         for name, row_position in attrs:
             position = (MARGIN_LEFT + row_position, position_y)
             draw.text(position, item[name], 33, font)
