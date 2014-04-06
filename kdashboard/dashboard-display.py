@@ -4,7 +4,7 @@ from subprocess import call
 from datetime import datetime
 
 URL = 'http://microdash.herokuapp.com/FOG/'
-OUTPUT_FILE = '/mnt/us/weather/weather-script-output.png'
+OUTPUT_FILE = '/mnt/us/kdashboard/dashboard.png'
 
 
 def clear_screen():
