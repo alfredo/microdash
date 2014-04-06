@@ -32,7 +32,7 @@ def draw_station(draw, station):
 
 def draw_timetable(draw, timetable_list, limit=7):
     """Draw the timetable."""
-    font = ImageFont.truetype(CONTENT_FONT, 24)
+    font = ImageFont.truetype(CONTENT_FONT, 25)
     offset = 70
     # Fields and position:
     attrs = [
