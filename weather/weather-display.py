@@ -27,7 +27,7 @@ def main():
     except IndexError:
         force = False
     # Only execute after 6 and before 10:
-    if ((now.hour >= 5) and (now.hour <= 11)) or force:
+    if ((now.hour >= 5) and (now.hour <= 10)) or force:
         clear_screen()
         get_dashboard(URL, OUTPUT_FILE)
         set_dashboard_background(OUTPUT_FILE)
