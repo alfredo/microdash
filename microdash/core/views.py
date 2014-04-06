@@ -37,8 +37,8 @@ def draw_timetable(draw, timetable_list, limit=7):
     # Fields and position:
     attrs = [
         ('destination', 0),
-        ('time', 290),
-        ('status', 390),
+        ('time', 310),
+        ('status', 400),
     ]
     for i, item in enumerate(timetable_list[:limit]):
         position_y = offset + (38 * i)
