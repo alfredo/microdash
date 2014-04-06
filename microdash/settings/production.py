@@ -11,3 +11,6 @@ here = lambda *x: os.path.join(PROJECT_ROOT, '..', *x)
 SECRET_KEY = env('SECRET_KEY')
 
 DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}
+
+TWITTER_KEY = env('TWITTER_KEY')
+TWITTER_SECRET = env('TWITTER_KEY')
