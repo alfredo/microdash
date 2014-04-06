@@ -9,3 +9,4 @@ pip-log.txt
 .#*
 *.egg-info
 notes.rst
+microdash/settings/local.py
