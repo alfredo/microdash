@@ -1,85 +1,84 @@
 import os
 import textwrap
-import requests
 
-from BeautifulSoup import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFont
 
 from django.http import HttpResponse
-from microdash.core import twitter
+from microdash.core import twitter, timetable
 
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 here = lambda *x: os.path.join(PROJECT_ROOT, '..', *x)
 HEADER_FONT = here('fonts', 'Playfair_Display', 'PlayfairDisplay-Bold.ttf')
 CONTENT_FONT = here('fonts', 'Open_Sans', 'OpenSans-Regular.ttf')
 
-MARGIN_LEFT = 10
+MARGIN_LEFT = 20
 VALID_STATIONS = ['london liverpool street']
 TWITTER_HANDLE = 'greateranglia'
-USER_AGENT = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:31.0) '
-              'Gecko/20100101 Firefox/31.0')
-HEADERS = {
-    'User-Agent': USER_AGENT,
-}
 
 
-def get_timetable(shortcode):
-    url = ('http://www.abelliogreateranglia.co.uk/travel-information'
-           '/journey-planning/live-departures/station/%s' % shortcode)
-    response = requests.get(url, headers=HEADERS)
-    if not response.status_code == 200:
-        response = requests.get(url, headers=HEADERS)
-    soup = BeautifulSoup(response.content)
-    columns = ['destination', 'time', 'status', 'origin', 'operator']
-    timetable = []
-    for row in soup.findAll('tr'):
-        if row.find('th'):
-            continue
-        row_data = dict([(k, v.text) for k, v in zip(columns, row.findAll('td'))])
-        timetable.append(row_data)
-    return [d for d in timetable if d['destination'].lower() in VALID_STATIONS]
-
-
-def get_dashboard_image(timetable):
-    size = (600, 800)
+def get_dashboard_image(size):
+    """Prepare canvas to render image."""
     im = Image.new('L', size, 255)
-    draw = ImageDraw.Draw(im)
-    position = (MARGIN_LEFT, 10)
-    font_header = ImageFont.truetype(HEADER_FONT, 40)
-    text = "Forest Gate station"
-    draw.text(position, text, 33, font=font_header)
-    font_content = ImageFont.truetype(CONTENT_FONT, 18)
-    for i, item in enumerate(timetable, start=1):
-        position_y = 40 + (35 * i)
-        destination_position = (MARGIN_LEFT, position_y)
-        draw.text(destination_position, item['destination'], 33, font=font_content)
-        time_position = (MARGIN_LEFT + 250, position_y)
-        draw.text(time_position, item['time'], 33, font=font_content)
-        status_position = (MARGIN_LEFT + 330, position_y)
-        draw.text(status_position, item['status'], 33, font=font_content)
-    position = (MARGIN_LEFT, 350)
-    font_header = ImageFont.truetype(HEADER_FONT, 40)
-    text = "@%s" % TWITTER_HANDLE
-    draw.text(position, text, 33, font=font_header)
-    timeline = twitter.get_user_timeline(
-        TWITTER_HANDLE, count=50, exclude_replies='true')
-    font_tweet = ImageFont.truetype(CONTENT_FONT, 17)
-    font_tweet_date = ImageFont.truetype(CONTENT_FONT, 12)
-    for i, item in enumerate(timeline[:4], start=1):
-        position_y = 330 + (85 * i)
-        date_position = (MARGIN_LEFT, position_y)
-        draw.text(date_position, item['created_at'], 33, font=font_tweet_date)
-        initial_text = position_y + 15
-        for k, mini_text in enumerate(textwrap.wrap(item['text'], 70)):
-            position_y = initial_text + (k* 20)
-            tweet_position = (MARGIN_LEFT, position_y)
-            draw.text(tweet_position, mini_text, 33, font=font_tweet)
     return im
 
 
+def draw_station(draw, station):
+    """Draw the station name."""
+    position = (MARGIN_LEFT, 10)
+    font = ImageFont.truetype(HEADER_FONT, 40)
+    draw.text(position, station, 33, font=font)
+    return draw
+
+
+def draw_timetable(draw, timetable_list, limit=7):
+    """Draw the timetable."""
+    font = ImageFont.truetype(CONTENT_FONT, 22)
+    offset = 75
+    # Fields and position:
+    attrs = [
+        ('destination', 0),
+        ('time', 290),
+        ('status', 390),
+    ]
+    for i, item in enumerate(timetable_list[:limit]):
+        position_y = offset + (35 * i)
+        for name, row_position in attrs:
+            position = (MARGIN_LEFT + row_position, position_y)
+            draw.text(position, item[name], 33, font)
+    return draw
+
+
+def draw_timeline(draw, timeline, limit=4):
+    """Draw the twitter timeline."""
+    font_header = ImageFont.truetype(HEADER_FONT, 35)
+    draw.text((MARGIN_LEFT, 350), "@%s" % TWITTER_HANDLE, 33, font=font_header)
+    font = ImageFont.truetype(CONTENT_FONT, 20)
+    font_date = ImageFont.truetype(CONTENT_FONT, 14)
+    offset = 410
+    tweet_height = 100
+    for i, item in enumerate(timeline[:limit]):
+        position_y = offset + (tweet_height * i)
+        date_position = (MARGIN_LEFT, position_y)
+        draw.text(date_position, item['created_at'], 33, font=font_date)
+        offset_text = position_y + 15
+        for k, mini_text in enumerate(textwrap.wrap(item['text'], 60)):
+            position_y = offset_text + (k * 22)
+            tweet_position = (MARGIN_LEFT, position_y)
+            draw.text(tweet_position, mini_text, 33, font=font)
+    return draw
+
+
 def station_dashboard(request, shortcode='FOG'):
-    timetable = get_timetable(shortcode)
-    img = get_dashboard_image(timetable)
+    size = (600, 800)
+    img = get_dashboard_image(size)
+    draw = ImageDraw.Draw(img)
+    station = "Forest Gate station"
+    draw = draw_station(draw, station)
+    timetable_list = timetable.get_timetable(shortcode, VALID_STATIONS)
+    draw = draw_timetable(draw, timetable_list)
+    timeline = twitter.get_user_timeline(
+        TWITTER_HANDLE, count=50, exclude_replies='true')
+    draw = draw_timeline(draw, timeline)
     response = HttpResponse(content_type='image/png')
     img.save(response, 'PNG')
     return response
