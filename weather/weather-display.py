@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 from subprocess import call
 from datetime import datetime
 
@@ -21,8 +22,12 @@ def set_dashboard_background(image_path):
 
 def main():
     now = datetime.now()
+    try:
+        force = sys.argv[1] == '-f'
+    except IndexError:
+        force = False
     # Only execute after 6 and before 10:
-    if (now.hour >= 5) and (now.hour <= 11):
+    if ((now.hour >= 5) and (now.hour <= 11)) or force:
         clear_screen()
         get_dashboard(URL, OUTPUT_FILE)
         set_dashboard_background(OUTPUT_FILE)
