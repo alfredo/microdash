@@ -64,13 +64,13 @@ WSGI_APPLICATION = 'microdash.wsgi.application'
 
 LANGUAGE_CODE = 'en-gb'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/London'
 
 USE_I18N = False
 
 USE_L10N = False
 
-USE_TZ = True
+USE_TZ = False
 
 
 MEDIA_ROOT = here('..', 'media')
